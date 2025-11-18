@@ -183,4 +183,274 @@
       width: 3.2rem;
       height: 3.2rem;
       border-radius: 999px;
-      background: ra
+      background: radial-gradient(circle at 30% 20%, #facc15, transparent 60%);
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    .ublock-section {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: 1rem;
+      border: 1px solid #111827;
+      background: radial-gradient(circle at top right, #020617, #020617);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .ublock-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .ublock-description {
+      font-size: 0.85rem;
+      color: #9ca3af;
+      margin-bottom: 0.75rem;
+    }
+
+    .ublock-input-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .ublock-input-row input {
+      flex: 1;
+      min-width: 220px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 0.45rem 0.8rem;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .ublock-input-row input::selection {
+      background: rgba(37, 99, 235, 0.5);
+    }
+
+    .ublock-hint {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .copy-ok {
+      font-size: 0.78rem;
+      color: #22c55e;
+      margin-left: 0.2rem;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 1rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    footer code {
+      background: #020617;
+      border-radius: 0.5rem;
+      padding: 0.2rem 0.35rem;
+      border: 1px solid #111827;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Ad Storm Test Page</h1>
+    <p class="subtitle">
+      Spawns a ridiculous number of fake <code>ad</code> elements so your content blocker has something to chew on.
+      No third-party requests, no real tracking.
+    </p>
+
+    <section class="panel">
+      <div class="stat">
+        <span class="stat-label">Fake ads generated</span>
+        <span class="stat-value" id="ad-count">0</span>
+      </div>
+
+      <div class="controls">
+        <button id="start">
+          ▶ Start spamming
+        </button>
+        <button id="stop" class="secondary">
+          ⏹ Stop
+        </button>
+
+        <div class="speed-select">
+          <label for="speed">
+            Speed:
+            <select id="speed">
+              <option value="1000">Chill (1 / sec)</option>
+              <option value="200">Fast (5 / sec)</option>
+              <option value="50">Absurd (20 / sec)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- uBlock Origin helper section -->
+    <section class="ublock-section">
+      <div class="ublock-title">uBlock Origin filter for this page</div>
+      <p class="ublock-description">
+        Copy this into <strong>uBlock Origin → Dashboard → My filters</strong> and apply changes.
+        It will hide all the fake ad elements on this site using cosmetic filtering.
+      </p>
+
+      <div class="ublock-input-row">
+        <input id="ublock-rule" readonly />
+        <button id="copy-rule">Copy</button>
+        <span id="copy-status" class="copy-ok" style="display: none;">Copied!</span>
+      </div>
+
+      <p class="ublock-hint">
+        This is a <em>cosmetic</em> rule only. It doesn’t block any network requests and doesn’t touch real ad servers.
+      </p>
+    </section>
+
+    <section class="grid" id="ad-container">
+      <!-- fake ads get injected here -->
+    </section>
+  </main>
+
+  <footer>
+    These are just local, synthetic “ads” using classes like <code>.ad</code>, <code>.banner-ad</code>, and
+    <code>.sponsored</code>. If your blocker hides them, that’s purely cosmetic and doesn’t hit any ad networks.
+  </footer>
+
+  <script>
+    const adContainer = document.getElementById("ad-container");
+    const adCountEl = document.getElementById("ad-count");
+    const startBtn = document.getElementById("start");
+    const stopBtn = document.getElementById("stop");
+    const speedSelect = document.getElementById("speed");
+
+    const ruleInput = document.getElementById("ublock-rule");
+    const copyBtn = document.getElementById("copy-rule");
+    const copyStatus = document.getElementById("copy-status");
+
+    let intervalId = null;
+    let adCount = 0;
+
+    const taglines = [
+      "You definitely don’t need this.",
+      "Totally not tracking you.",
+      "100% imaginary conversion funnel.",
+      "Clickbait without the click.",
+      "Optimized for blocking.",
+      "Now with 0 real impressions.",
+    ];
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function createFakeAd() {
+      const ad = document.createElement("article");
+
+      // add multiple “ad-like” classes so cosmetic filters can target them
+      ad.className = "ad banner-ad advertisement sponsored";
+
+      const label = document.createElement("div");
+      label.className = "ad-label";
+      label.textContent = "Ad";
+
+      const title = document.createElement("div");
+      title.className = "ad-title";
+      title.textContent = "Ultra Premium Nothing™";
+
+      const body = document.createElement("div");
+      body.className = "ad-body";
+      body.textContent = randomItem(taglines);
+
+      const pill = document.createElement("div");
+      pill.className = "ad-pill";
+
+      ad.appendChild(label);
+      ad.appendChild(title);
+      ad.appendChild(body);
+      ad.appendChild(pill);
+
+      adContainer.prepend(ad); // newest at top
+
+      adCount++;
+      adCountEl.textContent = adCount.toLocaleString();
+
+      // trim DOM a bit so it doesn't grow unbounded
+      if (adContainer.children.length > 400) {
+        adContainer.removeChild(adContainer.lastChild);
+      }
+    }
+
+    function startSpamming() {
+      if (intervalId !== null) return;
+
+      const delay = parseInt(speedSelect.value, 10) || 1000;
+      intervalId = setInterval(createFakeAd, delay);
+
+      startBtn.disabled = true;
+      startBtn.textContent = "Running…";
+    }
+
+    function stopSpamming() {
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      startBtn.disabled = false;
+      startBtn.textContent = "▶ Start spamming";
+    }
+
+    startBtn.addEventListener("click", startSpamming);
+    stopBtn.addEventListener("click", stopSpamming);
+    speedSelect.addEventListener("change", () => {
+      // if already running, restart with new speed
+      if (intervalId !== null) {
+        stopSpamming();
+        startSpamming();
+      }
+    });
+
+    // create a few initial ads so the page isn’t empty
+    for (let i = 0; i < 12; i++) {
+      createFakeAd();
+    }
+
+    // ----- uBlock field logic -----
+
+    // Build a cosmetic filter scoped to this domain
+    const domain = location.hostname || "example.com";
+    // uBO cosmetic syntax: domain##selector
+    const filterRule = `${domain}##.ad, .banner-ad, .advertisement, .sponsored`;
+    ruleInput.value = filterRule;
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        ruleInput.select();
+        ruleInput.setSelectionRange(0, ruleInput.value.length);
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(ruleInput.value);
+        } else {
+          document.execCommand("copy");
+        }
+
+        copyStatus.style.display = "inline";
+        setTimeout(() => {
+          copyStatus.style.display = "none";
+        }, 1200);
+      } catch (e) {
+        copyStatus.textContent = "Copy failed";
+        copyStatus.style.color = "#f97316";
+        copyStatus.style.display = "inline";
+      }
+    });
+  </script>
+</body>
+</html>
